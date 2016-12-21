@@ -18,6 +18,7 @@ function writeStatic(device, fields, orders) {
 	    printf("    %s %s\n", f, value);
 	}
     }
+
     print "";
 }
 
@@ -71,6 +72,8 @@ BEGIN { start = 0;
 	exit 1;
     }
 
+    last_line_empty=0;
+
     if (debug) {
 	for (f in settings) {
 	    print f, ": ", settings[f];
@@ -82,6 +85,8 @@ BEGIN { start = 0;
     # auto <device> line
     if ($1 == "auto") {
 	if ($2 != device) {
+	    if(!last_line_empty) print "";
+
 	    # We come to different device
 	    # Good place to write all the settings
 	    if (targetDev) {
@@ -159,6 +164,11 @@ BEGIN { start = 0;
 
     # Other type of lines e.g. comment
     } else {
+	if( $0 ~ /$\s*^/) {
+		last_line_empty=1;
+	} else {
+		last_line_empty=0;
+	}
 	print $0;
 	next;
     }
@@ -171,6 +181,7 @@ END {
     if (!remove) {
 	if (add || targetDev) {
 	    if (add) {
+		if(! last_line_empty) print "";
 		printf("auto %s\n", device);
 		printf("iface %s inet %s\n", device, mode);
 	    }
